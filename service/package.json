@@ -1,0 +1,11 @@
+{
+  "name": "com.third.floor.service",
+  "version": "1.0.0",
+  "description": "js service",
+  "main": "service.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD"
+}

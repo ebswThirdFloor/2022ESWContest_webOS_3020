@@ -14,7 +14,7 @@
     "license": "enact license",
     "test": "enact test",
     "test-watch": "enact test --watch",
-    "package": "ares-package dist",
+    "package": "ares-package dist service",
     "install": "ares-install com.third.floor_1.0.0_all.ipk",
     "launch": "ares-launch com.third.floor"
   },

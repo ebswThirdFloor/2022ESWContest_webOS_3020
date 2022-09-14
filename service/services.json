@@ -1,0 +1,9 @@
+{
+  "id": "com.third.floor.service",
+  "description": "js service",
+  "services": [
+    {
+      "name": "com.third.floor.service"
+    }
+  ]
+}
