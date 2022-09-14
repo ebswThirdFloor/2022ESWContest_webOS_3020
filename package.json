@@ -1,0 +1,51 @@
+{
+  "name": "ebsw",
+  "version": "1.0.0",
+  "description": "A general template for an Enact Typescript application.",
+  "author": "",
+  "main": "src/index.tsx",
+  "scripts": {
+    "serve": "enact serve",
+    "pack": "enact pack",
+    "pack-p": "enact pack -p",
+    "watch": "enact pack --watch",
+    "clean": "enact clean",
+    "lint": "enact lint .",
+    "license": "enact license",
+    "test": "enact test",
+    "test-watch": "enact test --watch",
+    "package": "ares-package dist",
+    "install": "ares-install com.third.floor_1.0.0_all.ipk",
+    "launch": "ares-launch com.third.floor"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": "",
+  "enact": {
+    "theme": "sandstone"
+  },
+  "eslintConfig": {
+    "extends": "enact"
+  },
+  "eslintIgnore": [
+    "node_modules/*",
+    "build/*",
+    "dist/*"
+  ],
+  "dependencies": {
+    "@enact/core": "^4.5.0",
+    "@enact/i18n": "^4.5.0",
+    "@enact/sandstone": "^2.5.0",
+    "@enact/spotlight": "^4.5.0",
+    "@enact/ui": "^4.5.0",
+    "@types/node": "^12.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "ilib": "^14.14.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^4.6.4",
+    "web-vitals": "^2.1.4"
+  }
+}
