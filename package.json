@@ -16,7 +16,8 @@
     "test-watch": "enact test --watch",
     "package": "ares-package dist service",
     "install": "ares-install com.third.floor_1.0.0_all.ipk",
-    "launch": "ares-launch com.third.floor"
+    "launch": "ares-launch com.third.floor",
+    "make": "npm run package && npm run install && npm run launch"
   },
   "license": "UNLICENSED",
   "private": true,
