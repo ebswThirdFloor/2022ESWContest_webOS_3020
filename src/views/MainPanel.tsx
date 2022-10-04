@@ -1,16 +1,22 @@
-import kind from '@enact/core/kind';
-import Button from '@enact/sandstone/Button';
-import {Header, Panel} from '@enact/sandstone/Panels';
+import Button from "@enact/sandstone/Button";
+import { Header, Panel } from "@enact/sandstone/Panels";
+import { useRecoilState } from "recoil";
+import { pathState } from "../store";
 
-const MainPanel = kind({
-	name: 'MainPanel',
-
-	render: (props) => (
-		<Panel {...props}>
-			<Header title="Hello world!" />
-			<Button>Click me</Button>
-		</Panel>
-	)
-});
+const MainPanel = () => {
+  const [_, setPath] = useRecoilState(pathState);
+  return (
+    <Panel>
+      <Header title="Hello world!" />
+      <Button
+        onClick={() => {
+          setPath("sub");
+        }}
+      >
+        Click me
+      </Button>
+    </Panel>
+  );
+};
 
 export default MainPanel;

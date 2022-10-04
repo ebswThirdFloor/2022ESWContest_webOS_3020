@@ -1,9 +1,13 @@
 import { createRoot } from "react-dom/client";
-
 import App from "./App";
+import { RecoilRoot } from "recoil";
 import reportWebVitals from "./reportWebVitals";
 
-const appElement = <App />;
+const appElement = (
+  <RecoilRoot>
+    <App />
+  </RecoilRoot>
+);
 
 // In a browser environment, render instead of exporting
 if (typeof window !== "undefined") {

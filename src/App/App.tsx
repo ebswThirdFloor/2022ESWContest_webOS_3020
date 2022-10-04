@@ -1,26 +1,26 @@
-import kind from '@enact/core/kind';
-import Panels from '@enact/sandstone/Panels';
-import ThemeDecorator from '@enact/sandstone/ThemeDecorator';
+import React from "react";
+import Panels from "@enact/sandstone/Panels";
+import ThemeDecorator from "@enact/sandstone/ThemeDecorator";
+import Routable, { Route } from "@enact/ui/Routable";
+import { useRecoilValue } from "recoil";
+import MainPanel from "../views/MainPanel";
+import SubPanel from "../views/SubPanel";
+import { pathState } from "../store";
+import Style from "./App.module.css";
 
-import MainPanel from '../views/MainPanel';
+const App = () => {
+  const path = useRecoilValue(pathState);
 
-import css from './App.module.less';
+  const MainNavigator = Routable({ navigate: "mainNavigate" }, ({ children }: { children: React.ReactNode }) => (
+    <Panels className={Style.mainPanel}>{children}</Panels>
+  ));
 
-const App = kind({
-	name: 'App',
-
-	styles: {
-		css,
-		className: 'app'
-	},
-
-	render: (props) => (
-		<div {...props}>
-			<Panels>
-				<MainPanel />
-			</Panels>
-		</div>
-	)
-});
+  return (
+    <MainNavigator path={path}>
+      <Route path="main" component={MainPanel} />
+      <Route path="sub" component={SubPanel} />
+    </MainNavigator>
+  );
+};
 
 export default ThemeDecorator(App);
