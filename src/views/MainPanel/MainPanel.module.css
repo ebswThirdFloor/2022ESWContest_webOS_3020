@@ -1,0 +1,15 @@
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.col {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.btnWrapper {
+  width: 50vw;
+  margin: auto;
+}
