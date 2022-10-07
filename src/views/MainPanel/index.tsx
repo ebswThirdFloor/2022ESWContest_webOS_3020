@@ -1,11 +1,10 @@
 import { Header, Panel } from "@enact/sandstone/Panels";
-import { useRecoilState } from "recoil";
+import { useNavigate } from "react-router-dom";
 import Card from "../../components/Card";
-import { pathState } from "../../store";
 import Style from "./MainPanel.module.css";
 
 const MainPanel = () => {
-  const [_, setPath] = useRecoilState(pathState);
+  const navigate = useNavigate();
   return (
     <Panel>
       <Header title="성장 일기" noSubtitle />
@@ -16,7 +15,7 @@ const MainPanel = () => {
           </Card>
         </div>
         <div className={Style.col}>
-          <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => setPath("registerInfo")}>
+          <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => navigate("/register/info")}>
             <h1>사용자 등록</h1>
           </Card>
           <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => console.log("nav to setting")}>

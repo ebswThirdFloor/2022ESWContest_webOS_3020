@@ -1,26 +1,33 @@
 import React from "react";
 import Panels from "@enact/sandstone/Panels";
 import ThemeDecorator from "@enact/sandstone/ThemeDecorator";
-import Routable, { Route } from "@enact/ui/Routable";
-import { useRecoilValue } from "recoil";
+import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from "react-router-dom";
 import MainPanel from "../views/MainPanel";
-import SubPanel from "../views/SubPanel";
-import { pathState } from "../store";
+import RegisterInfoPanel from "../views/RegisterInfoPanel/";
+import RegisterPhotoPanel from "../views/RegisterPhotoPanel/";
 import Style from "./App.module.css";
 
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route
+      path="/"
+      element={
+        <Panels className={Style.mainPanel}>
+          <Outlet />
+        </Panels>
+      }
+    >
+      <Route path="/" element={<MainPanel />} />
+      <Route path="register">
+        <Route path="info" element={<RegisterInfoPanel />} />
+        <Route path="photo/:nickname/:age/:gender" element={<RegisterPhotoPanel />} />
+      </Route>
+    </Route>
+  )
+);
+
 const App = () => {
-  const path = useRecoilValue(pathState);
-
-  const MainNavigator = Routable({ navigate: "mainNavigate" }, ({ children }: { children: React.ReactNode }) => (
-    <Panels className={Style.mainPanel}>{children}</Panels>
-  ));
-
-  return (
-    <MainNavigator path={path}>
-      <Route path="main" component={MainPanel} />
-      <Route path="sub" component={SubPanel} />
-    </MainNavigator>
-  );
+  return <RouterProvider router={router} />;
 };
 
 export default ThemeDecorator(App);
