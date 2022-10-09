@@ -9,5 +9,7 @@
   "miniicon": "icon-mini.png",
   "largeIcon": "icon-large.png",
   "uiRevision": 2,
-  "requiredPermissions": ["activity.operation"]
+  "requiredPermissions": ["activity.operation"],
+  "allowVideoCapture": true,
+  "enableWebOSVDA": true
 }
