@@ -6,7 +6,7 @@ import Picker from "@enact/sandstone/Picker";
 import Button from "@enact/sandstone/Button";
 import Card from "../../components/Card";
 import Style from "./RegisterInfoPanel.module.css";
-import { InputEvent, PickerEvent } from "../../types";
+import { InputEvent, PickerEvent } from "../../../types/types";
 
 const RegisterInfoPanel = () => {
   const navigate = useNavigate();

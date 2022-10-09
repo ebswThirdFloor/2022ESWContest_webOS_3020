@@ -1,0 +1,23 @@
+.contentWrapper {
+  width: 50vw;
+  margin: auto;
+}
+
+.webcam {
+  margin: 20px auto;
+}
+
+.btnWrapper {
+  display: flex;
+  flex-direction: row;
+  align-self: flex-end;
+}
+
+.title {
+  margin: 20px;
+}
+
+.canvas {
+  width: 640px;
+  height: 480px;
+}
