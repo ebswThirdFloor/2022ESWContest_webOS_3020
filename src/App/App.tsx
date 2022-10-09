@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Panels from "@enact/sandstone/Panels";
 import ThemeDecorator from "@enact/sandstone/ThemeDecorator";
 import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from "react-router-dom";
@@ -6,6 +6,18 @@ import MainPanel from "../views/MainPanel";
 import RegisterInfoPanel from "../views/RegisterInfoPanel/";
 import RegisterPhotoPanel from "../views/RegisterPhotoPanel/";
 import Style from "./App.module.css";
+
+import { useLocation, useNavigate } from "react-router-dom";
+
+const ErrorElement = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  useEffect(() => {
+    console.error("404");
+    navigate("/");
+  }, []);
+  return <div>current location: {location.pathname}</div>;
+};
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -16,6 +28,7 @@ const router = createBrowserRouter(
           <Outlet />
         </Panels>
       }
+      errorElement={<ErrorElement />}
     >
       <Route path="/" element={<MainPanel />} />
       <Route path="register">
