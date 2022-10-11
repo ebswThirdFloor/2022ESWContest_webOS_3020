@@ -10,7 +10,7 @@ const MainPanel = () => {
       <Header title="성장 일기" noSubtitle />
       <div className={`${Style.row} ${Style.btnWrapper}`}>
         <div className={Style.col}>
-          <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => console.log("nav to history")}>
+          <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => navigate("/history/list")}>
             <h1>기록 보기</h1>
           </Card>
         </div>

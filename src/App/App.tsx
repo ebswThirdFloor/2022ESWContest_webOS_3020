@@ -5,6 +5,7 @@ import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, O
 import MainPanel from "../views/MainPanel";
 import RegisterInfoPanel from "../views/RegisterInfoPanel/";
 import RegisterPhotoPanel from "../views/RegisterPhotoPanel/";
+import HistoryListPanel from "../views/HistoryListPanel";
 import Style from "./App.module.css";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -34,6 +35,9 @@ const router = createBrowserRouter(
       <Route path="register">
         <Route path="info" element={<RegisterInfoPanel />} />
         <Route path="photo/:nickname/:age/:gender" element={<RegisterPhotoPanel />} />
+      </Route>
+      <Route path="history">
+        <Route path="list" element={<HistoryListPanel />} />
       </Route>
     </Route>
   )
