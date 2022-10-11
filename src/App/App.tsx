@@ -6,6 +6,7 @@ import MainPanel from "../views/MainPanel";
 import RegisterInfoPanel from "../views/RegisterInfoPanel/";
 import RegisterPhotoPanel from "../views/RegisterPhotoPanel/";
 import HistoryListPanel from "../views/HistoryListPanel";
+import HistoryViewPanel from "../views/HistoryViewPanel";
 import Style from "./App.module.css";
 
 import { useLocation, useNavigate } from "react-router-dom";
@@ -38,6 +39,7 @@ const router = createBrowserRouter(
       </Route>
       <Route path="history">
         <Route path="list" element={<HistoryListPanel />} />
+        <Route path="view/:id" element={<HistoryViewPanel />} />
       </Route>
     </Route>
   )

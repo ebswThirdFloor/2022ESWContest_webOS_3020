@@ -6,6 +6,14 @@ import { VirtualGridListItemRendererProps } from "../../../types/types";
 
 const HistoryListPanel = () => {
   const navigate = useNavigate();
+  const userList = [
+    {
+      id: "bradpitt",
+      nickname: "홍길동",
+      modified: "2022.10.11",
+      img: "https://image.cine21.com/resize/cine21/person/2019/0520/11_27_25__5ce2108d9e6cd[X252,310].jpg",
+    },
+  ];
   return (
     <Panel>
       <Header title="기록 보기" onClose={() => navigate("/")} />
@@ -14,15 +22,8 @@ const HistoryListPanel = () => {
           minWidth: 450,
           minHeight: 600,
         }}
-        itemRenderer={(props: VirtualGridListItemRendererProps) => (
-          <HistoryListItem
-            id="bradpitt"
-            nickname="홍길동"
-            modified="2022.10.11"
-            img="https://image.cine21.com/resize/cine21/person/2019/0520/11_27_25__5ce2108d9e6cd[X252,310].jpg"
-          />
-        )}
-        dataSize={5}
+        itemRenderer={(props: VirtualGridListItemRendererProps) => <HistoryListItem {...userList[props.index]} />}
+        dataSize={userList.length}
       />
     </Panel>
   );
