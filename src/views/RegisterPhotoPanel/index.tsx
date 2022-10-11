@@ -44,15 +44,6 @@ const RegisterPhotoPanel = () => {
             width: image.width,
           },
         });
-        const option = {
-          service: "com.webos.notification",
-          method: "createToast",
-          parameters: {
-            sourceId: appInfo.id,
-            message: "등록되었습니다",
-          },
-        };
-        api.send(option);
       } catch (e) {
         throw new Error("네트워크 오류");
       }
@@ -89,6 +80,15 @@ const RegisterPhotoPanel = () => {
               onClick={async () => {
                 try {
                   await submit();
+                  const option = {
+                    service: "com.webos.notification",
+                    method: "createToast",
+                    parameters: {
+                      sourceId: appInfo.id,
+                      message: "등록되었습니다",
+                    },
+                  };
+                  api.send(option);
                   navigate("/");
                 } catch (e) {
                   const option = {
