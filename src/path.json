@@ -1,0 +1,11 @@
+{
+  "main": "main",
+  "register": {
+    "info": "registerInfo",
+    "photo": "registerPhoto"
+  },
+  "history": {
+    "list": "historyList",
+    "view": "historyView"
+  }
+}

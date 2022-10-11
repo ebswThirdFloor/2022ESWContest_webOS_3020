@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Header, Panel } from "@enact/sandstone/Panels";
-import { useNavigate } from "react-router-dom";
+import useNavigate from "../../hooks/useNavigate";
 import LS2Request from "@enact/webos/LS2Request";
 import Input from "@enact/sandstone/Input";
 import Picker from "@enact/sandstone/Picker";
@@ -9,6 +9,7 @@ import Card from "../../components/Card";
 import Style from "./RegisterInfoPanel.module.css";
 import { InputEvent, PickerEvent } from "../../../types/types";
 import appInfo from "../../../webos-meta/appinfo.json";
+import path from "../../path.json";
 
 const RegisterInfoPanel = () => {
   const navigate = useNavigate();
@@ -29,13 +30,17 @@ const RegisterInfoPanel = () => {
       };
       api.send(option);
     } else {
-      navigate(`/register/photo/${nickname}/${age}/${gender}`);
+      navigate(path.register.photo, {
+        nickname: nickname,
+        age: age,
+        gender: gender,
+      });
     }
   };
 
   return (
     <Panel>
-      <Header title="사용자 등록" onClose={() => navigate("/")} />
+      <Header title="사용자 등록" onClose={() => navigate(path.main)} />
       <div className={Style.contentWrapper}>
         <Card align_items="flex-start" justify_content="flex_start">
           <h1>사용자 정보</h1>

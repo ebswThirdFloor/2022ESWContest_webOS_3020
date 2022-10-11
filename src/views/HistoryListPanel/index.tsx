@@ -1,8 +1,9 @@
 import { Header, Panel } from "@enact/sandstone/Panels";
 import { VirtualGridList } from "@enact/sandstone/VirtualList";
-import { useNavigate } from "react-router-dom";
 import HistoryListItem from "../../components/HistoryListItem";
 import { VirtualGridListItemRendererProps } from "../../../types/types";
+import useNavigate from "../../hooks/useNavigate";
+import path from "../../path.json";
 
 const HistoryListPanel = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const HistoryListPanel = () => {
   ];
   return (
     <Panel>
-      <Header title="기록 보기" onClose={() => navigate("/")} />
+      <Header title="기록 보기" onClose={() => navigate(path.main)} />
       <VirtualGridList
         itemSize={{
           minWidth: 450,

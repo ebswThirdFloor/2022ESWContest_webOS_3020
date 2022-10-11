@@ -1,18 +1,19 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Header, Panel } from "@enact/sandstone/Panels";
-import { useNavigate, useMatch } from "react-router-dom";
+import useNavigate from "../../hooks/useNavigate";
+import useParams from "../../hooks/useNavigate";
 import Webcam from "react-webcam";
 import LS2Request from "@enact/webos/LS2Request";
 import Button from "@enact/sandstone/Button";
 import Card from "../../components/Card";
 import Style from "./RegisterPhotoPanel.module.css";
 import appInfo from "../../../webos-meta/appinfo.json";
+import path from "../../path.json";
 
 const RegisterPhotoPanel = () => {
   const navigate = useNavigate();
 
-  const match = useMatch("/register/photo/:nickname/:age/:gender");
-  const userInfo = match?.params;
+  const userInfo = useParams();
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -54,7 +55,7 @@ const RegisterPhotoPanel = () => {
 
   return (
     <Panel>
-      <Header title="사용자 등록" onClose={() => navigate("/register/info")} />
+      <Header title="사용자 등록" onClose={() => navigate(path.register.info)} />
       <div className={Style.contentWrapper}>
         <Card align_items="flex-start" justify_content="flex_start">
           <h1 className={Style.title}>사용자 정보</h1>
@@ -89,7 +90,7 @@ const RegisterPhotoPanel = () => {
                     },
                   };
                   api.send(option);
-                  navigate("/");
+                  navigate(path.main);
                 } catch (e) {
                   const option = {
                     service: "com.webos.notification",

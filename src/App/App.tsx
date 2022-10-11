@@ -1,52 +1,31 @@
 import React, { useEffect } from "react";
 import Panels from "@enact/sandstone/Panels";
 import ThemeDecorator from "@enact/sandstone/ThemeDecorator";
-import { createBrowserRouter, createRoutesFromElements, RouterProvider, Route, Outlet } from "react-router-dom";
+import Routable, { Route } from "@enact/ui/Routable";
 import MainPanel from "../views/MainPanel";
 import RegisterInfoPanel from "../views/RegisterInfoPanel/";
 import RegisterPhotoPanel from "../views/RegisterPhotoPanel/";
 import HistoryListPanel from "../views/HistoryListPanel";
 import HistoryViewPanel from "../views/HistoryViewPanel";
 import Style from "./App.module.css";
+import { useRecoilValue } from "recoil";
+import pathStore from "../store/pathStore";
+import path from "../path.json";
 
-import { useLocation, useNavigate } from "react-router-dom";
-
-const ErrorElement = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  useEffect(() => {
-    console.error("404");
-    navigate("/");
-  }, []);
-  return <div>current location: {location.pathname}</div>;
-};
-
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route
-      path="/"
-      element={
-        <Panels className={Style.mainPanel}>
-          <Outlet />
-        </Panels>
-      }
-      errorElement={<ErrorElement />}
-    >
-      <Route path="/" element={<MainPanel />} />
-      <Route path="register">
-        <Route path="info" element={<RegisterInfoPanel />} />
-        <Route path="photo/:nickname/:age/:gender" element={<RegisterPhotoPanel />} />
-      </Route>
-      <Route path="history">
-        <Route path="list" element={<HistoryListPanel />} />
-        <Route path="view/:id" element={<HistoryViewPanel />} />
-      </Route>
-    </Route>
-  )
-);
+const Views = Routable({ navigate: "onNavigate" }, ({ children }: { children: React.ReactNode }) => <Panels className={Style.mainPanel}>{children}</Panels>);
 
 const App = () => {
-  return <RouterProvider router={router} />;
+  const pathState = useRecoilValue(pathStore);
+  console.log(pathState);
+  return (
+    <Views path={pathState.path}>
+      <Route path={path.main} component={MainPanel} />
+      <Route path={path.register.info} component={RegisterInfoPanel} />
+      <Route path={path.register.photo} component={RegisterPhotoPanel} />
+      <Route path={path.history.list} component={HistoryListPanel} />
+      <Route path={path.history.view} component={HistoryViewPanel} />
+    </Views>
+  );
 };
 
 export default ThemeDecorator(App);

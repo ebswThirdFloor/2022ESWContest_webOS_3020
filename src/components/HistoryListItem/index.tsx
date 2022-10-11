@@ -1,7 +1,8 @@
 import Icon from "@enact/sandstone/Icon";
 import Style from "./HistoryListItem.module.css";
 import styled from "styled-components";
-import { useNavigate } from "react-router-dom";
+import useNavigate from "../../hooks/useNavigate";
+import path from "../../path.json";
 
 interface HistoryListItemProps {
   id: string;
@@ -25,7 +26,9 @@ const HistoryListItem = ({ id, nickname, modified, img }: HistoryListItemProps) 
     <div
       className={Style.wrapper}
       onClick={() => {
-        navigate(`/history/view/${id}`);
+        navigate(path.history.view, {
+          id: id,
+        });
       }}
     >
       <StyledProfileImage imageSrc={img} />
