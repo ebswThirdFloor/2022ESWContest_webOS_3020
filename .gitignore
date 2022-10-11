@@ -14,3 +14,5 @@ dist
 # misc
 .DS_Store
 npm-debug.log
+
+.eslintcache
