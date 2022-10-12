@@ -1,0 +1,1 @@
+python yolov5/webos.py --root './service/'
