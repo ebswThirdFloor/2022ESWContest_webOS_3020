@@ -1,0 +1,45 @@
+.contentWrapper {
+  width: 50vw;
+  margin: auto;
+}
+
+.input {
+  width: 100%;
+  color: black;
+}
+
+.switch {
+  background-color: #7d848c;
+  border-radius: 0.25rem;
+  width: 100%;
+  margin: 0.125rem 0.75rem;
+  max-width: 18.75rem;
+}
+
+label {
+  font-weight: bold;
+}
+
+.layout {
+  display: flex;
+  flex-direction: horizontal;
+  align-items: center;
+  margin: 0 auto 100px auto;
+}
+
+.next {
+  align-self: flex-end;
+}
+.timePickerWrapper {
+  background-color: #4c5059;
+  border-radius: 30px;
+  padding: 20px;
+  margin: 15px;
+}
+
+.label {
+  font-size: 48px;
+  font-weight: 600;
+  color: #000000;
+  margin: 30px;
+}

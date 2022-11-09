@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import Panels from "@enact/sandstone/Panels";
 import ThemeDecorator from "@enact/sandstone/ThemeDecorator";
 import Routable, { Route } from "@enact/ui/Routable";
@@ -7,6 +7,7 @@ import RegisterInfoPanel from "../views/RegisterInfoPanel/";
 import RegisterPhotoPanel from "../views/RegisterPhotoPanel/";
 import HistoryListPanel from "../views/HistoryListPanel";
 import HistoryViewPanel from "../views/HistoryViewPanel";
+import SettingPanel from "../views/SettingPanel";
 import Style from "./App.module.css";
 import { useRecoilValue } from "recoil";
 import pathStore from "../store/pathStore";
@@ -16,7 +17,6 @@ const Views = Routable({ navigate: "onNavigate" }, ({ children }: { children: Re
 
 const App = () => {
   const pathState = useRecoilValue(pathStore);
-  console.log(pathState);
   return (
     <Views path={pathState.path}>
       <Route path={path.main} component={MainPanel} />
@@ -24,6 +24,7 @@ const App = () => {
       <Route path={path.register.photo} component={RegisterPhotoPanel} />
       <Route path={path.history.list} component={HistoryListPanel} />
       <Route path={path.history.view} component={HistoryViewPanel} />
+      <Route path={path.setting} component={SettingPanel} />
     </Views>
   );
 };

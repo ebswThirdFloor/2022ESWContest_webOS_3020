@@ -1,12 +1,17 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import { RecoilRoot } from "recoil";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import reportWebVitals from "./reportWebVitals";
 
+const queryClient = new QueryClient();
+
 const appElement = (
-  <RecoilRoot>
-    <App />
-  </RecoilRoot>
+  <QueryClientProvider client={queryClient}>
+    <RecoilRoot>
+      <App />
+    </RecoilRoot>
+  </QueryClientProvider>
 );
 
 // In a browser environment, render instead of exporting

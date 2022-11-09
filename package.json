@@ -39,6 +39,7 @@
     "@enact/sandstone": "^2.5.0",
     "@enact/spotlight": "^4.5.0",
     "@enact/ui": "^4.5.0",
+    "@tanstack/react-query": "^4.10.3",
     "ilib": "^14.14.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",

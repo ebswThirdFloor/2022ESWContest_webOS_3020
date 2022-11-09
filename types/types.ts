@@ -13,3 +13,8 @@ export interface VirtualGridListItemRendererProps {
   "data-index": number;
   index: number;
 }
+
+export interface TimePickerEvnet {
+  type: string;
+  value: Date;
+}

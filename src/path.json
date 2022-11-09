@@ -7,5 +7,6 @@
   "history": {
     "list": "historyList",
     "view": "historyView"
-  }
+  },
+  "setting": "setting"
 }

@@ -19,7 +19,7 @@ const MainPanel = () => {
           <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => navigate(path.register.info)}>
             <h1>사용자 등록</h1>
           </Card>
-          <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => console.log("nav to setting")}>
+          <Card bgcolor="#2A3A64" color="#ffffff" onClick={() => navigate(path.setting)}>
             <h1>설정</h1>
           </Card>
         </div>
