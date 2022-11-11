@@ -9,7 +9,14 @@
   "miniicon": "icon-mini.png",
   "largeIcon": "icon-large.png",
   "uiRevision": 2,
-  "requiredPermissions": ["activity.operation", "notification.operation", "activity.query", "com.third.floor.service.group"],
+  "requiredPermissions": [
+    "activity.operation",
+    "notification.operation",
+    "activity.query",
+    "com.third.floor.service.group",
+    "camera.query",
+    "camera.operation"
+  ],
   "allowVideoCapture": true,
   "enableWebOSVDA": true
 }
