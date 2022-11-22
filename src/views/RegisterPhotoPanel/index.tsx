@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Header, Panel } from "@enact/sandstone/Panels";
 import useNavigate from "../../hooks/useNavigate";
-import useParams from "../../hooks/useNavigate";
+import useParams from "../../hooks/useParams";
 import Webcam from "react-webcam";
 import LS2Request from "@enact/webos/LS2Request";
 import Button from "@enact/sandstone/Button";
@@ -36,9 +36,22 @@ const RegisterPhotoPanel = () => {
   const submit = async () => {
     if (image) {
       try {
+        const option = {
+          service: "com.third.floor.service",
+          method: "addUser",
+          parameters: {
+            userInfo,
+            image: {
+              src: image.src,
+              height: image.height,
+              width: image.width,
+            },
+          },
+        };
+        api.send(option);
         // react-query 변경 예정
         console.log({
-          userInfo: userInfo,
+          userInfo,
           image: {
             src: image.src,
             height: image.height,

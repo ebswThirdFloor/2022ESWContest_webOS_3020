@@ -3,10 +3,11 @@ const Service = require("webos-service");
 const spawn = require("child_process").spawn;
 const fs = require("fs");
 const service = new Service(pkgInfo.name);
+const uuidv4 = require("uuid4");
 
 const logHeader = "[" + pkgInfo.name + "]";
-const filePath = process.cwd();
-const imagePath = "/tmp/thirdfloor/";
+const userPath = process.cwd() + "/users";
+const imagePath = process.cwd() + "/tmp";
 const intervaltime = 1000;
 const captureParam = {
   width: 640,
@@ -91,7 +92,8 @@ function createInterval() {
   }, intervaltime);
 }
 
-function capture(captureParam) {
+async function capture(captureParam) {
+  await mkStickyDir(imagePath);
   return new Promise((resolve, reject) => {
     if (!handle)
       reject({
@@ -120,21 +122,15 @@ function capture(captureParam) {
   });
 }
 
-async function setDir() {
-  const oldmask = process.umask(0);
-  const result = await Promise.all(
-    [filePath + "/users", imagePath].map(
-      (path) =>
-        new Promise((resolve, reject) => {
-          fs.mkdir(path, "1777", (err) => {
-            if (err && err.code != "EEXIST") reject(error);
-            else resolve(null);
-          });
-        })
-    )
-  );
-  process.umask(oldmask);
-  return result;
+function mkStickyDir(path) {
+  return new Promise((resolve, reject) => {
+    const oldmask = process.umask(0);
+    fs.mkdir(path, "1777", (err) => {
+      if (err && err.code != "EEXIST") reject(error);
+      else resolve(null);
+    });
+    process.umask(oldmask);
+  });
 }
 
 service.register("record", async function (message) {
@@ -209,16 +205,6 @@ function closeCamera() {
 }
 
 service.register("start", async function (message) {
-  try {
-    await setDir();
-  } catch (e) {
-    console.error(e);
-    message.respond({
-      returnValue: false,
-      errorText: "mkdir failed",
-    });
-    return;
-  }
   await openCamera();
   subscription = service.subscribe(`luna://${pkgInfo.name}/heartbeat`, { subscribe: true });
   message.respond({
@@ -238,4 +224,113 @@ service.register("stop", async function (message) {
     subscription = undefined;
     await closeCamera();
   }
+});
+
+service.register("addUser", async function (message) {
+  const { userInfo, image } = message.payload;
+  const id = uuidv4();
+  userInfo.id = id;
+  const userDir = `${userPath}/${id}`;
+  await mkStickyDir(userDir);
+  await mkStickyDir(userDir + "/image");
+  try {
+    fs.writeFileSync(userDir + "/profile.jpeg", Buffer.from(image.src.replace(/^data:image\/jpeg;base64,/, ""), "base64"));
+    fs.writeFileSync(userDir + "/info.json", JSON.stringify(userInfo));
+  } catch (e) {
+    message.respond({
+      returnValue: false,
+    });
+    return;
+  }
+  service.call("luna://" + pkgInfo.name + "/setActiveUser", { id }, function (response) {
+    if (response.payload.returnValue) {
+      message.respond({
+        returnValue: true,
+      });
+    } else {
+      message.respond({
+        returnValue: false,
+      });
+    }
+  });
+});
+
+service.register("deleteUser", function (message) {
+  const { id } = message.payload;
+  fs.rmdir(userPath + `/${id}`, { recursive: true }, (err) => {
+    if (err) {
+      message.respond({
+        returnValue: false,
+      });
+    } else {
+      fs.opendir(`${userPath}/active`, (err, dir) => {
+        if (err && err.code === "ENOENT") {
+          service.call("luna://" + pkgInfo.name + "/getUsers", {}, function (response) {
+            if (response.payload.users.length > 0) {
+              service.call("luna://" + pkgInfo.name + "/setActiveUser", { id: response.payload.users[0].info.id }, null);
+            } else {
+              fs.unlinkSync(userPath + "/active");
+            }
+          });
+        }
+      });
+      message.respond({
+        returnValue: true,
+      });
+    }
+  });
+});
+
+service.register("getUsers", function (message) {
+  const result = [];
+  let activeUserId;
+  fs.readlink(userPath + "/active", (err, linkString) => {
+    if (err) {
+      console.error(err);
+    } else {
+      const arr = linkString.split("/");
+      activeUserId = arr[arr.length - 1];
+    }
+  });
+  fs.readdir(userPath, (err, idArr) => {
+    if (err) {
+      console.error(err);
+      message.respond({
+        returnValue: false,
+      });
+    }
+    idArr
+      .filter((id) => id !== "active")
+      .forEach((id) => {
+        const userInfo = JSON.parse(fs.readFileSync(userPath + `/${id}/info.json`, "utf8"));
+        result.push({
+          path: userPath + `/${id}`,
+          profile: userPath + `/${id}/profile.jpeg`,
+          info: userInfo,
+          isActive: userInfo.id === activeUserId,
+        });
+      });
+    message.respond({
+      returnValue: true,
+      users: result,
+    });
+  });
+});
+
+service.register("setActiveUser", function (message) {
+  const { id } = message.payload;
+  try {
+    fs.unlinkSync(`${userPath}/active`);
+  } catch (e) {}
+  try {
+    fs.symlinkSync(`${userPath}/${id}`, `${userPath}/active`);
+  } catch (e) {
+    message.respond({
+      returnValue: false,
+    });
+    return;
+  }
+  message.respond({
+    returnValue: true,
+  });
 });
