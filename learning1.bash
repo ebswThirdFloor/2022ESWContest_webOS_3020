@@ -1,1 +1,0 @@
-python yolov5/webos.py --root './src/views/RegisterPhotoPanel/'

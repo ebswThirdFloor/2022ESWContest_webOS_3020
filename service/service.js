@@ -1,336 +1,452 @@
 const pkgInfo = require("./package.json");
 const Service = require("webos-service");
-const spawn = require("child_process").spawn;
 const fs = require("fs");
+const axios = require("axios");
+const qs = require("qs");
+const FormData = require("form-data");
 const service = new Service(pkgInfo.name);
-const uuidv4 = require("uuid4");
 
+const SERVER_URL = "http://165.246.44.130:3000/";
+const fsPromises = fs.promises;
 const logHeader = "[" + pkgInfo.name + "]";
-const userPath = process.cwd() + "/users";
-const imagePath = process.cwd() + "/tmp";
-const intervaltime = 1000;
-const captureParam = {
-  width: 640,
-  height: 480,
-  format: "JPEG",
-  mode: "MODE_ONESHOT",
-};
-const recordNum = 3;
+const imgPath = process.cwd() + "/tmp/";
 
-let interval;
 let subscription;
-let cameraId;
-let handle;
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+const camera = {
+  handle: undefined,
 
-service.register("identify", async function (message) {
-  console.log(logHeader, "SERVICE_METHOD_CALLED:/identify");
-  const spawnPythonProcess = async () => {
-    const pythonProcess = spawn("python3", ["./test.py"]);
-    let data = "";
-    for await (const chunk of pythonProcess.stdout) {
-      data += chunk;
-    }
-    let error = "";
-    for await (const chunk of pythonProcess.stderr) {
-      data += chunk;
-    }
-    const exitCode = await new Promise((resolve, reject) => {
-      pythonProcess.on("close", resolve);
+  getCameraList: function () {
+    // console.log(logHeader, "getCameraList");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/getCameraList", {}, function (res) {
+        console.log("getCameraList", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
     });
-    if (exitCode) throw new Error(`error: exit code ${exitCode}, ${error}`);
-    return data;
-  };
-  try {
-    const res = await spawnPythonProcess();
-    message.respond({ Response: res });
-  } catch (err) {
-    console.error(err);
-    message.respond({ errorText: "spawnPythonProcess error" });
-  }
-});
+  },
 
-const heartbeat = service.register("heartbeat");
+  cameraOpen: (id) => {
+    // console.log(logHeader, "cameraOpen");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/open", { id }, (res) => {
+        console.log("cameraOpen", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
 
-heartbeat.on("request", function (message) {
-  console.log(logHeader, "SERVICE_METHOD_CALLED:/heartbeat/request");
-  if (message.isSubscription) {
-    if (!interval) {
-      createInterval();
+  cameraClose: (handle) => {
+    // console.log(logHeader, "cameraClose");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/close", { handle }, (res) => {
+        console.log("cameraClose", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
+
+  startPreview: (handle, params = { type: "sharedmemory", source: "0" }) => {
+    // console.log(logHeader, "startPreview");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/startPreview", { handle, params }, (res) => {
+        console.log("startPreview", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
+
+  stopPreview: (handle) => {
+    // console.log(logHeader, "stopPreview");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/stopPreview", { handle }, (res) => {
+        console.log("stopPreview", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
+
+  startCapture: (
+    handle,
+    path,
+    params = {
+      width: 640,
+      height: 480,
+      format: "JPEG",
+      mode: "MODE_ONESHOT",
     }
-  }
-  message.respond({ returnValue: true });
-});
+  ) => {
+    // console.log(logHeader, "startCapture");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/startCapture", { handle, path, params }, (res) => {
+        console.log("startCapture", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
 
-heartbeat.on("cancel", function (message) {
-  console.log(logHeader, "SERVICE_METHOD_CALLED:/heartbeat/cancel");
-  clearInterval(interval);
+  stopCapture: (handle) => {
+    // console.log(logHeader, "stopCapture");
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.camera2/stopCapture", { handle }, (res) => {
+        console.log("stopCapture", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
+};
+
+class HeartBeat {
+  heartbeat = undefined;
+  subscription = undefined;
   interval = undefined;
-  message.respond({ returnValue: true });
-});
 
-function createInterval() {
-  if (interval) {
-    console.error("interval undefined");
-    return;
+  start() {
+    this.subscription = service.subscribe(`luna://${pkgInfo.name}/heartbeat`, { subscribe: true });
   }
-  console.log(logHeader, "create_interval");
-  interval = setInterval(async function () {
-    try {
-      await capture(captureParam);
-      fs.readdir(imagePath, (err, files) => {
-        if (err) console.error(err);
-        // console.log(files);
-        files.forEach((file) => fs.unlinkSync(imagePath + file));
-      });
-    } catch (e) {
-      console.error(e);
-    }
-  }, intervaltime);
-}
 
-async function capture(captureParam) {
-  await mkStickyDir(imagePath);
-  return new Promise((resolve, reject) => {
-    if (!handle)
-      reject({
-        returnValue: false,
-        errorText: "handle value undefined",
-      });
-    service.call("luna://com.webos.service.camera2/startPreview", { handle, params: { type: "sharedmemory", source: "0" } }, (startPreviewResponse) => {
-      if (!startPreviewResponse.payload.returnValue) {
-        reject(startPreviewResponse);
-        return;
-      } else {
-        key = startPreviewResponse.payload.key;
-        service.call("luna://com.webos.service.camera2/startCapture", { handle, params: captureParam, path: imagePath }, (captureResponse) => {
-          if (!captureResponse.payload.returnValue) {
-            reject(captureResponse);
-            return;
-          } else {
-            service.call("luna://com.webos.service.camera2/stopPreview", { handle }, (stopPreviewResponse) => {
-              if (!stopPreviewResponse.payload.returnValue) reject(stopPreviewResponse);
-              else resolve(stopPreviewResponse);
-            });
+  stop() {
+    if (subscription !== undefined) {
+      this.subscription.cancel();
+      this.subscription = undefined;
+    }
+  }
+
+  constructor(intervalFunc) {
+    this.heartbeat = service.register("heartbeat");
+
+    this.heartbeat.on("request", function (message) {
+      console.log(logHeader, "heartbeat/request");
+      if (message.isSubscription && !this.interval) {
+        console.log(logHeader, "createInterval");
+        this.interval = setInterval(async () => {
+          try {
+            await intervalFunc();
+          } catch (err) {
+            console.error(err);
           }
-        });
+        }, 3000);
+        message.respond({ returnValue: true });
+      } else {
+        message.respond({ returnValue: false });
       }
     });
-  });
-}
 
-function mkStickyDir(path) {
-  return new Promise((resolve, reject) => {
-    const oldmask = process.umask(0);
-    fs.mkdir(path, "1777", (err) => {
-      if (err && err.code != "EEXIST") reject(error);
-      else resolve(null);
+    this.heartbeat.on("cancel", function (message) {
+      console.log(logHeader, "heartbeat/cancel");
+      if (this.interval) {
+        clearInterval(this.interval);
+        this.interval = undefined;
+        message.respond({ returnValue: true });
+      } else {
+        message.respond({ returnValue: false });
+      }
     });
-    process.umask(oldmask);
-  });
+  }
 }
 
-service.register("record", async function (message) {
+const users = {
+  userJson: process.cwd() + "/user.json",
+
+  async getUserID(userInfo, image) {
+    console.log(logHeader, "getUserID");
+    const imageSrc = image.src.replace(/^data:image\/jpeg;base64,/, "");
+    const data = new FormData();
+    data.append("image", Buffer.from(imageSrc, "base64"), "image.jpeg");
+    data.append("userInfo", JSON.stringify(userInfo));
+    const config = {
+      method: "post",
+      url: SERVER_URL + "user",
+      headers: {
+        ...data.getHeaders(),
+      },
+      data,
+    };
+    const res = await axios(config);
+    return res.data.userID;
+  },
+
+  async setActiveUser(userID) {
+    console.log(logHeader, "setActiveUser");
+    const json = {
+      activeUser: userID,
+    };
+    await fsPromises.writeFile(users.userJson, JSON.stringify(json));
+  },
+
+  async getActiveUser() {
+    console.log(logHeader, "getActiveUser");
+    return JSON.parse(await fsPromises.readFile(users.userJson));
+  },
+
+  addUser(userInfo, image) {
+    console.log(logHeader, "addUser");
+    return new Promise(async (resolve, reject) => {
+      const userID = await this.getUserID(userInfo, image);
+      if (userID) {
+        await this.setActiveUser(userID);
+        resolve(userID);
+      } else {
+        reject(true);
+      }
+    });
+  },
+
+  async deleteUser(userID) {
+    console.log(logHeader, "deleteUser");
+    const { activeUser } = JSON.parse(await getActiveUser());
+    if (activeUser === userID) setActiveUser(undefined);
+    const data = qs.stringify({ userID });
+    const config = {
+      method: "delete",
+      url: SERVER_URL + "user",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      data: data,
+    };
+    await axios(config);
+  },
+};
+
+const utils = {
+  sleep: (ms) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  },
+  clean: async (path) => {
+    await fsPromises.rmdir(path, { recursive: true });
+    await fsPromises.mkdir(path);
+  },
+  upload: async (imgPath, activeUser) => {
+    const image = fs.createReadStream(imgPath);
+    const data = new FormData();
+    data.append("image", image);
+    data.append("userID", activeUser);
+    const config = {
+      method: "post",
+      url: SERVER_URL + "take",
+      headers: {
+        ...data.getHeaders(),
+      },
+      data,
+    };
+    await axios(config);
+  },
+  make: async (userID) => {
+    const config = {
+      method: "get",
+      url: `165.246.44.130:3000/contents?userID=${userID}`,
+    };
+    await axios(config);
+  },
+};
+
+const schedule = {
+  setSchedule(time) {
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.alarm/set", { key: "com.third.floor", uri: "luna://" + pkgInfo.name + "/start", params: {}, in: time }, (res) => {
+        console.log("setSchedule", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
+  clearSchedule() {
+    return new Promise((resolve, rejects) => {
+      service.call("luna://com.webos.service.alarm/clear", { key: "com.third.floor" }, (res) => {
+        console.log("clearSchedule", res.payload);
+        if (res.payload.returnValue) {
+          resolve(res.payload);
+        } else {
+          rejects(res.payload);
+        }
+      });
+    });
+  },
+};
+
+const prepareCamera = () => {
+  return new Promise(async (resove, reject) => {
+    const cameraList = await camera.getCameraList();
+    if (cameraList.returnValue && cameraList.deviceList.length > 0) {
+      const cameraId = cameraList.deviceList[0].id;
+      const { handle } = await camera.cameraOpen(cameraId);
+      resove(handle);
+    } else reject(undefined);
+  });
+};
+
+const capture = async (handle, path, activeUser) => {
+  console.log("capture called");
   try {
-    await openCamera();
-    for (var i = 0; i < recordNum; i++) {
-      await capture(captureParam);
-      await sleep(500);
+    await camera.startPreview(handle);
+    await utils.sleep(1000);
+    await utils.clean(imgPath);
+    await camera.startCapture(handle, path);
+    const fileList = await fsPromises.readdir(imgPath);
+    if (fileList.length > 0) {
+      await utils.upload(imgPath + fileList[0], activeUser);
     }
-    await closeCamera();
+  } catch (e) {
+    console.error(e);
+  } finally {
+    await camera.stopPreview(handle);
+  }
+};
+
+service.register("start", async (message) => {
+  console.log(logHeader, "start");
+  const { activeUser } = JSON.parse(await fsPromises.readFile(users.userJson));
+  if (activeUser === undefined) {
+    message.respond({
+      returnValue: false,
+    });
+  } else {
+    camera.handle = await prepareCamera();
+    subscription = new HeartBeat(async () => {
+      await capture(camera.handle, imgPath, activeUser);
+    });
+    subscription.start();
     message.respond({
       returnValue: true,
     });
-  } catch (e) {
-    console.error(e);
-    message.respond({
-      returnValue: false,
-      errorText: e.errorText,
-    });
   }
 });
 
-function openCamera() {
-  return new Promise((resolve, reject) => {
-    service.call("luna://com.webos.service.camera2/getCameraList", {}, function (cameraListResponse) {
-      const deviceList = cameraListResponse.payload.deviceList;
-      if (deviceList.length === 0 || !cameraListResponse.payload.returnValue) {
-        reject({
-          returnValue: false,
-          errorText: "camera not found",
-        });
-      } else {
-        cameraId = deviceList[0].id;
-        service.call("luna://com.webos.service.camera2/open", { id: cameraId }, function (openResponse) {
-          if (!openResponse.payload.returnValue) {
-            reject({
-              returnValue: false,
-              errorCode: openResponse.payload.errorCode,
-              errorText: openResponse.payload.errorText,
-            });
-          } else {
-            handle = openResponse.payload.handle;
-            resolve({
-              returnValue: true,
-              Response: `camera handle vaule: ${handle}`,
-            });
-          }
-        });
-      }
-    });
-  });
-}
-
-function closeCamera() {
-  return new Promise((resolve, reject) => {
-    service.call("luna://com.webos.service.camera2/close", { handle }, function (response) {
-      cameraId = handle = undefined;
-      if (response.payload.returnValue) {
-        resolve({
-          returnValue: true,
-          Response: "camera closed",
-        });
-      } else {
-        reject({
-          returnValue: false,
-          errorCode: response.errorCode,
-          errorText: response.errorText,
-        });
-      }
-    });
-  });
-}
-
-service.register("start", async function (message) {
-  await openCamera();
-  subscription = service.subscribe(`luna://${pkgInfo.name}/heartbeat`, { subscribe: true });
-  message.respond({
-    returnValue: true,
-    Response: "service has been started.",
-  });
-});
-
-service.register("stop", async function (message) {
+service.register("stop", async (message) => {
+  console.log(logHeader, "stop");
   if (subscription === undefined) {
     message.respond({
       returnValue: false,
-      Response: "service hasn't been started yet.",
     });
   } else {
-    subscription.cancel();
-    subscription = undefined;
-    await closeCamera();
-  }
-});
-
-service.register("addUser", async function (message) {
-  const { userInfo, image } = message.payload;
-  const id = uuidv4();
-  userInfo.id = id;
-  const userDir = `${userPath}/${id}`;
-  await mkStickyDir(userDir);
-  await mkStickyDir(userDir + "/image");
-  try {
-    fs.writeFileSync(userDir + "/profile.jpeg", Buffer.from(image.src.replace(/^data:image\/jpeg;base64,/, ""), "base64"));
-    fs.writeFileSync(userDir + "/info.json", JSON.stringify(userInfo));
-  } catch (e) {
-    message.respond({
-      returnValue: false,
-    });
-    return;
-  }
-  service.call("luna://" + pkgInfo.name + "/setActiveUser", { id }, function (response) {
-    if (response.payload.returnValue) {
-      message.respond({
-        returnValue: true,
-      });
-    } else {
-      message.respond({
-        returnValue: false,
-      });
-    }
-  });
-});
-
-service.register("deleteUser", function (message) {
-  const { id } = message.payload;
-  fs.rmdir(userPath + `/${id}`, { recursive: true }, (err) => {
-    if (err) {
-      message.respond({
-        returnValue: false,
-      });
-    } else {
-      fs.opendir(`${userPath}/active`, (err, dir) => {
-        if (err && err.code === "ENOENT") {
-          service.call("luna://" + pkgInfo.name + "/getUsers", {}, function (response) {
-            if (response.payload.users.length > 0) {
-              service.call("luna://" + pkgInfo.name + "/setActiveUser", { id: response.payload.users[0].info.id }, null);
-            } else {
-              fs.unlinkSync(userPath + "/active");
-            }
-          });
-        }
-      });
-      message.respond({
-        returnValue: true,
-      });
-    }
-  });
-});
-
-service.register("getUsers", function (message) {
-  const result = [];
-  let activeUserId;
-  fs.readlink(userPath + "/active", (err, linkString) => {
-    if (err) {
-      console.error(err);
-    } else {
-      const arr = linkString.split("/");
-      activeUserId = arr[arr.length - 1];
-    }
-  });
-  fs.readdir(userPath, (err, idArr) => {
-    if (err) {
-      console.error(err);
-      message.respond({
-        returnValue: false,
-      });
-    }
-    idArr
-      .filter((id) => id !== "active")
-      .forEach((id) => {
-        const userInfo = JSON.parse(fs.readFileSync(userPath + `/${id}/info.json`, "utf8"));
-        result.push({
-          path: userPath + `/${id}`,
-          profile: userPath + `/${id}/profile.jpeg`,
-          info: userInfo,
-          isActive: userInfo.id === activeUserId,
-        });
-      });
+    subscription.stop();
+    await camera.cameraClose(camera.handle);
     message.respond({
       returnValue: true,
-      users: result,
     });
-  });
-});
-
-service.register("setActiveUser", function (message) {
-  const { id } = message.payload;
-  try {
-    fs.unlinkSync(`${userPath}/active`);
-  } catch (e) {}
-  try {
-    fs.symlinkSync(`${userPath}/${id}`, `${userPath}/active`);
-  } catch (e) {
-    message.respond({
-      returnValue: false,
-    });
-    return;
   }
   message.respond({
     returnValue: true,
   });
+});
+
+service.register("demo", async (message) => {
+  console.log(logHeader, "demo");
+  const { activeUser } = JSON.parse(await fsPromises.readFile(users.userJson));
+  if (activeUser === undefined) {
+    message.respond({
+      returnValue: false,
+    });
+  } else {
+    try {
+      camera.handle = await prepareCamera();
+      for (let i = 0; i < 3; i++) {
+        await capture(camera.handle, imgPath, activeUser);
+        await utils.sleep(3000);
+      }
+      await camera.cameraClose(camera.handle);
+      await utils.make(activeUser);
+      message.respond({
+        returnValue: true,
+      });
+    } catch (err) {
+      console.error(err);
+      message.respond({
+        returnValue: false,
+      });
+    }
+  }
+});
+
+service.register("addUser", async (message) => {
+  console.log(logHeader, "addUser");
+  const { userInfo, image } = message.payload;
+  try {
+    await users.addUser(userInfo, image);
+    message.respond({
+      returnValue: true,
+    });
+  } catch (err) {
+    console.error(err);
+    message.respond({
+      returnValue: false,
+    });
+  }
+});
+
+service.register("deleteUser", async (message) => {
+  console.log(logHeader, "deleteUser");
+  const { userID } = message.payload;
+  try {
+    await users.deleteUser(userID);
+    message.respond({
+      returnValue: true,
+    });
+  } catch (err) {
+    console.error(err);
+    message.respond({
+      returnValue: false,
+    });
+  }
+});
+
+service.register("setSchedule", async (message) => {
+  const { time } = message.payload;
+  try {
+    await schedule.setSchedule(time);
+    message.respond({
+      returnValue: true,
+    });
+  } catch (err) {
+    console.error(err);
+    message.respond({
+      returnValue: false,
+    });
+  }
+});
+
+service.register("clearSchedule", async (message) => {
+  try {
+    await schedule.clearSchedule();
+    message.respond({
+      returnValue: true,
+    });
+  } catch (err) {
+    console.error(err);
+    message.respond({
+      returnValue: false,
+    });
+  }
 });
