@@ -1,27 +1,16 @@
-import { Header, Panel } from "@enact/sandstone/Panels";
-import VideoPlayer from "@enact/sandstone/VideoPlayer";
-import useNavigate from "../../hooks/useNavigate";
-import useParams from "../../hooks/useParams";
-import path from "../../path.json";
+import { Panel } from "@enact/sandstone/Panels";
+import { VideoPlayerBase } from "@enact/sandstone/VideoPlayer";
+import { useNavigate, useParams } from "react-router-dom";
+import Style from "./HistoryViewPanel.module.css";
 
 const HistoryViewPanel = () => {
   const navigate = useNavigate();
-  const userInfo = useParams();
-
-  const userData = {
-    ...userInfo,
-    userName: "bradpitt",
-    src: "http://43.201.82.61:3000/video/webos.mp4",
-  };
-
-  console.log(userData);
+  const params = useParams();
+  const userInfo = JSON.parse(params.userInfo);
 
   return (
-    <Panel>
-      <Header title={`${userData.userName}님의 기록`} onClose={() => navigate(path.main)} />
-      <VideoPlayer loop autoPlay>
-        <source src={userData.src} />
-      </VideoPlayer>
+    <Panel css={Style}>
+      <VideoPlayerBase loop autoPlay muted source={<source src={userInfo.output} />} onBack={() => navigate(-1)} />
     </Panel>
   );
 };

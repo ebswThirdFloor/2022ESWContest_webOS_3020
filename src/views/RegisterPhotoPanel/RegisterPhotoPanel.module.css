@@ -1,6 +1,16 @@
-.contentWrapper {
-  width: 50vw;
-  margin: auto;
+.wrapper {
+  margin: 50px 150px !important;
+  background-color: #ffffff;
+  padding: 150px;
+  border-radius: 15px;
+  margin-right: 150px;
+  align-items: center;
+}
+
+.innerWrapper {
+  margin: 0 auto;
+  width: fit-content;
+  color: #4e4e4e;
 }
 
 .webcam {

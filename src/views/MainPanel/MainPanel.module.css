@@ -9,7 +9,30 @@
   flex-direction: column;
 }
 
-.btnWrapper {
-  width: 50vw;
-  margin: auto;
+.wrapper {
+  margin: 50px 150px !important;
+}
+
+.description {
+  flex: 3;
+  background-color: #ffffff;
+  padding: 150px;
+  border-radius: 15px;
+  margin-right: 150px;
+  color: #4e4e4e;
+}
+
+.description h1 {
+  color: #4e4e4e;
+}
+
+.description article {
+  color: #4e4e4e;
+  font-size: 44px !important;
+}
+
+.buttonWrapper {
+  background-color: #ffffff;
+  padding: 50px;
+  border-radius: 15px;
 }

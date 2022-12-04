@@ -1,23 +1,22 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Header, Panel } from "@enact/sandstone/Panels";
-import useNavigate from "../../hooks/useNavigate";
-import useParams from "../../hooks/useParams";
+import { Panel } from "@enact/sandstone/Panels";
+import { useNavigate, useParams } from "react-router-dom";
 import Webcam from "react-webcam";
-import LS2Request from "@enact/webos/LS2Request";
 import Button from "@enact/sandstone/Button";
-import Card from "../../components/Card";
 import Style from "./RegisterPhotoPanel.module.css";
-import appInfo from "../../../webos-meta/appinfo.json";
 import path from "../../path.json";
+import sendNotification from "../../luna_apis/sendNotification";
+import addUser from "../../luna_apis/addUser";
+import Header from "../../components/Header";
 
 const RegisterPhotoPanel = () => {
   const navigate = useNavigate();
 
-  const userInfo = useParams();
+  const params = useParams();
+  const userInfo = JSON.parse(params.userInfo);
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const api = new LS2Request();
 
   const capture = useCallback(() => {
     if (webcamRef.current !== null) {
@@ -36,28 +35,7 @@ const RegisterPhotoPanel = () => {
   const submit = async () => {
     if (image) {
       try {
-        const option = {
-          service: "com.third.floor.service",
-          method: "addUser",
-          parameters: {
-            userInfo,
-            image: {
-              src: image.src,
-              height: image.height,
-              width: image.width,
-            },
-          },
-        };
-        api.send(option);
-        // react-query 변경 예정
-        console.log({
-          userInfo,
-          image: {
-            src: image.src,
-            height: image.height,
-            width: image.width,
-          },
-        });
+        addUser({ userInfo, image });
       } catch (e) {
         throw new Error("네트워크 오류");
       }
@@ -68,9 +46,9 @@ const RegisterPhotoPanel = () => {
 
   return (
     <Panel>
-      <Header title="사용자 등록" onClose={() => navigate(path.register.info)} />
-      <div className={Style.contentWrapper}>
-        <Card align_items="flex-start" justify_content="flex_start">
+      <Header title="사용자 등록" onBackPressed={() => navigate(path.register.info + encodeURIComponent(JSON.stringify(userInfo)), { replace: true })} />
+      <div className={Style.wrapper}>
+        <div className={Style.innerWrapper}>
           <h1 className={Style.title}>사용자 정보</h1>
           {image === null ? (
             <Webcam className={Style.webcam} audio={false} ref={webcamRef} screenshotFormat="image/jpeg" width={640} height={480} />
@@ -94,34 +72,17 @@ const RegisterPhotoPanel = () => {
               onClick={async () => {
                 try {
                   await submit();
-                  const option = {
-                    service: "com.webos.notification",
-                    method: "createToast",
-                    parameters: {
-                      sourceId: appInfo.id,
-                      message: "등록되었습니다",
-                    },
-                  };
-                  api.send(option);
+                  sendNotification("등록되었습니다");
                   navigate(path.main);
                 } catch (e) {
-                  const option = {
-                    service: "com.webos.notification",
-                    method: "createToast",
-                    parameters: {
-                      sourceId: appInfo.id,
-                      message: (e as Error).message,
-                    },
-                  };
-                  api.send(option);
-                  console.error("error: ", (e as Error).message);
+                  sendNotification((e as Error).message);
                 }
               }}
             >
               제출
             </Button>
           </div>
-        </Card>
+        </div>
       </div>
     </Panel>
   );

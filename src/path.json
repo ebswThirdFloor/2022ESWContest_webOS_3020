@@ -1,12 +1,12 @@
 {
-  "main": "main",
+  "main": "/",
   "register": {
-    "info": "registerInfo",
-    "photo": "registerPhoto"
+    "info": "/register/info/",
+    "photo": "/register/photo/"
   },
   "history": {
-    "list": "historyList",
-    "view": "historyView"
+    "list": "/history/list/",
+    "view": "/history/view/"
   },
-  "setting": "setting"
+  "setting": "/setting/"
 }

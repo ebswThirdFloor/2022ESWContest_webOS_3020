@@ -1,27 +1,26 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  min-width: 450px;
-  min-height: 600px;
-  height: 90%;
-  margin: 50px;
-  border-radius: 50px;
+  height: 100%;
+  margin: 30px;
+  border-radius: 15px;
 }
 
 .imageWrapper {
   display: flex;
-  flex: 5;
+  flex: 8;
   background-color: #ffffff;
-  border-radius: 50px 50px 0 0;
+  border-radius: 15px 15px 0 0;
 }
 
 .bottom {
   display: flex;
   flex: 1;
-  background-color: #2a3a64;
+  background-color: #00263c;
   padding: 10px 0;
-  border-radius: 0 0 50px 50px;
-  flex-direction: horizontal;
+  margin-bottom: 50px;
+  border-radius: 0 0 15px 15px;
+  flex-direction: row;
   justify-content: space-between;
 }
 

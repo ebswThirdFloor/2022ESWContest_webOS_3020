@@ -1,0 +1,13 @@
+.header > div {
+  background-color: #ffffff;
+  border-radius: 15px;
+  padding: 50px 150px !important;
+}
+
+.header h1 {
+  color: #4e4e4e !important;
+}
+
+.header h2 {
+  position: relative !important;
+}
