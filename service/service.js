@@ -19,10 +19,13 @@ const camera = {
   getCameraList: function () {
     // console.log(logHeader, "getCameraList");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/getCameraList", {}, function (res) {
+      service.call("luna://com.webos.service.camera2/getCameraList", {}, async (res) => {
         console.log("getCameraList", res.payload);
         if (res.payload.returnValue) {
-          resolve(res.payload);
+          if (res.payload.deviceList.length === 0) {
+            await utils.sendNotification("카메라가 연결되지 않았습니다");
+            rejects(res.payload);
+          } else resolve(res.payload);
         } else {
           rejects(res.payload);
         }
@@ -33,11 +36,12 @@ const camera = {
   cameraOpen: (id) => {
     // console.log(logHeader, "cameraOpen");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/open", { id }, (res) => {
+      service.call("luna://com.webos.service.camera2/open", { id }, async (res) => {
         console.log("cameraOpen", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("카메라 오류: open");
           rejects(res.payload);
         }
       });
@@ -47,11 +51,12 @@ const camera = {
   cameraClose: (handle) => {
     // console.log(logHeader, "cameraClose");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/close", { handle }, (res) => {
+      service.call("luna://com.webos.service.camera2/close", { handle }, async (res) => {
         console.log("cameraClose", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("카메라 오류: close");
           rejects(res.payload);
         }
       });
@@ -61,11 +66,12 @@ const camera = {
   startPreview: (handle, params = { type: "sharedmemory", source: "0" }) => {
     // console.log(logHeader, "startPreview");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/startPreview", { handle, params }, (res) => {
+      service.call("luna://com.webos.service.camera2/startPreview", { handle, params }, async (res) => {
         console.log("startPreview", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("카메라 오류: startPreview");
           rejects(res.payload);
         }
       });
@@ -75,11 +81,12 @@ const camera = {
   stopPreview: (handle) => {
     // console.log(logHeader, "stopPreview");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/stopPreview", { handle }, (res) => {
+      service.call("luna://com.webos.service.camera2/stopPreview", { handle }, async (res) => {
         console.log("stopPreview", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("카메라 오류: stopPreview");
           rejects(res.payload);
         }
       });
@@ -98,11 +105,12 @@ const camera = {
   ) => {
     // console.log(logHeader, "startCapture");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/startCapture", { handle, path, params }, (res) => {
+      service.call("luna://com.webos.service.camera2/startCapture", { handle, path, params }, async (res) => {
         console.log("startCapture", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("카메라 오류: startCapture");
           rejects(res.payload);
         }
       });
@@ -112,11 +120,12 @@ const camera = {
   stopCapture: (handle) => {
     // console.log(logHeader, "stopCapture");
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.camera2/stopCapture", { handle }, (res) => {
+      service.call("luna://com.webos.service.camera2/stopCapture", { handle }, async (res) => {
         console.log("stopCapture", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("카메라 오류: stopCapture");
           rejects(res.payload);
         }
       });
@@ -143,7 +152,7 @@ class HeartBeat {
   constructor(intervalFunc) {
     this.heartbeat = service.register("heartbeat");
 
-    this.heartbeat.on("request", function (message) {
+    this.heartbeat.on("request", async function (message) {
       console.log(logHeader, "heartbeat/request");
       if (message.isSubscription && !this.interval) {
         console.log(logHeader, "createInterval");
@@ -156,17 +165,19 @@ class HeartBeat {
         }, 3000);
         message.respond({ returnValue: true });
       } else {
+        await utils.sendNotification("서비스 오류: heartbeat request");
         message.respond({ returnValue: false });
       }
     });
 
-    this.heartbeat.on("cancel", function (message) {
+    this.heartbeat.on("cancel", async function (message) {
       console.log(logHeader, "heartbeat/cancel");
       if (this.interval) {
         clearInterval(this.interval);
         this.interval = undefined;
         message.respond({ returnValue: true });
       } else {
+        await utils.sendNotification("서비스 오류: heartbeat cancel");
         message.respond({ returnValue: false });
       }
     });
@@ -263,17 +274,14 @@ const utils = {
   make: async (userID) => {
     const config = {
       method: "get",
-      url: `165.246.44.130:3000/contents?userID=${userID}`,
+      url: SERVER_URL + `contents?userID=${userID}`,
     };
     await axios(config);
   },
-};
-
-const schedule = {
-  setSchedule(time) {
+  sendNotification: async (message) => {
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.alarm/set", { key: "com.third.floor", uri: "luna://" + pkgInfo.name + "/start", params: {}, in: time }, (res) => {
-        console.log("setSchedule", res.payload);
+      service.call("luna://com.webos.notification/createToast", { message }, (res) => {
+        console.log("createToast", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
@@ -282,13 +290,34 @@ const schedule = {
       });
     });
   },
+};
+
+const schedule = {
+  setSchedule(time) {
+    return new Promise((resolve, rejects) => {
+      service.call(
+        "luna://com.webos.service.alarm/set",
+        { key: "com.third.floor", uri: "luna://" + pkgInfo.name + "/start", params: {}, in: time },
+        async (res) => {
+          console.log("setSchedule", res.payload);
+          if (res.payload.returnValue) {
+            resolve(res.payload);
+          } else {
+            await utils.sendNotification("서비스 오류: alarm set");
+            rejects(res.payload);
+          }
+        }
+      );
+    });
+  },
   clearSchedule() {
     return new Promise((resolve, rejects) => {
-      service.call("luna://com.webos.service.alarm/clear", { key: "com.third.floor" }, (res) => {
+      service.call("luna://com.webos.service.alarm/clear", { key: "com.third.floor" }, async (res) => {
         console.log("clearSchedule", res.payload);
         if (res.payload.returnValue) {
           resolve(res.payload);
         } else {
+          await utils.sendNotification("서비스 오류: alarm clear");
           rejects(res.payload);
         }
       });
@@ -302,6 +331,7 @@ const prepareCamera = () => {
     if (cameraList.returnValue && cameraList.deviceList.length > 0) {
       const cameraId = cameraList.deviceList[0].id;
       const { handle } = await camera.cameraOpen(cameraId);
+      await utils.sleep(3000);
       resove(handle);
     } else reject(undefined);
   });
@@ -309,6 +339,7 @@ const prepareCamera = () => {
 
 const capture = async (handle, path, activeUser) => {
   console.log("capture called");
+  let returnValue = false;
   try {
     await camera.startPreview(handle);
     await utils.sleep(1000);
@@ -317,11 +348,13 @@ const capture = async (handle, path, activeUser) => {
     const fileList = await fsPromises.readdir(imgPath);
     if (fileList.length > 0) {
       await utils.upload(imgPath + fileList[0], activeUser);
+      returnValue = true;
     }
   } catch (e) {
     console.error(e);
   } finally {
     await camera.stopPreview(handle);
+    return returnValue;
   }
 };
 
@@ -372,12 +405,18 @@ service.register("demo", async (message) => {
   } else {
     try {
       camera.handle = await prepareCamera();
-      for (let i = 0; i < 3; i++) {
-        await capture(camera.handle, imgPath, activeUser);
+      let i = 1;
+      while (true) {
+        const captureSuccess = await capture(camera.handle, imgPath, activeUser);
+        await utils.sendNotification(`${i}번째 사진이 촬영되었습니다.`);
+        if (captureSuccess) {
+          if (i++ >= 3) break;
+        }
         await utils.sleep(3000);
       }
       await camera.cameraClose(camera.handle);
       await utils.make(activeUser);
+      await utils.sendNotification(`성장일기가 생성되었습니다.`);
       message.respond({
         returnValue: true,
       });

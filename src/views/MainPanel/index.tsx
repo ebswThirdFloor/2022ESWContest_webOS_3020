@@ -4,6 +4,7 @@ import Style from "./MainPanel.module.css";
 import path from "../../path.json";
 import { useNavigate } from "react-router-dom";
 import Header from "../../components/Header";
+import demo from "../../luna_apis/demo";
 
 const MainPanel = () => {
   const navigate = useNavigate();
@@ -23,7 +24,7 @@ const MainPanel = () => {
           <Card onClick={() => navigate(path.register.info)}>
             <h1>사용자 등록</h1>
           </Card>
-          <Card onClick={() => navigate(path.history.list)}>
+          <Card onClick={() => demo()}>
             <h1>기능체험</h1>
           </Card>
           <Card onClick={() => navigate(path.setting)}>
